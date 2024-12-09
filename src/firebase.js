@@ -1,9 +1,13 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+
 import toast from "react-hot-toast";
 import store from "./redux/store";
 import { login as loginHandle, logout as logOutHandle } from "./redux/userSlice";
 import { openModal } from "./redux/modal";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+
 
 
 
@@ -19,6 +23,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth()
+export const db = getFirestore(app)
 
 
 
@@ -144,6 +149,9 @@ onAuthStateChanged(auth, (user) => {
 
 
 
-
+export const addTodo = async (data) => {
+    const result = await addDoc(collection(db, "todos"), data)
+    console.log(result)
+}
 
 export default app;
