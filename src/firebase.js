@@ -1,9 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification, updatePassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import toast from "react-hot-toast";
 import store from "./redux/store";
 import { login as loginHandle, logout as logOutHandle } from "./redux/userSlice";
-
+import { openModal } from "./redux/modal";
 
 
 
@@ -43,9 +43,25 @@ export const login = async (email, password) => {
         toast.error(error.message)
 
     }
-
-
 }
+export const reAuth = async password => {
+    try {
+        const credential = await EmailAuthProvider.credential(
+            auth.currentUser.email,
+            password
+        )
+        const { user } = await reauthenticateWithCredential(auth.currentUser, credential)
+
+        return user
+    } catch (error) {
+        toast.error(error.message)
+
+    }
+}
+
+
+
+
 export const logout = async () => {
     try {
         await signOut(auth)
@@ -83,6 +99,11 @@ export const resetPassword = async (password) => {
 
 
     } catch (error) {
+        if (error.message === "auth/requires-recent-login") {
+            store.dispatch(openModal({
+                name: "re-auth-modal"
+            }))
+        }
         toast.error(error.message)
 
 
