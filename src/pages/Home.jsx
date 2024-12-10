@@ -84,23 +84,29 @@ const Home = () => {
             Ekle
           </button>
         </form>
-
-        <ul className="mt-4 flex flex-col gap-y-4 w-6/12">
-          {todos.map((todo) => (
-            <li
-              key={todo.id}
-              className="p-4 rounded bg-indigo-50 text-sm text-indigo-700 flex justify-between items-center "
-            >
-              {todo.todo}
-              <button
-                onClick={() => handleDelete(todo.id)}
-                className="h-7 rounded px-3 bg-indigo-700 text-white"
+        {todos.length > 0 && (
+          <ul className="mt-4 flex flex-col gap-y-4 w-6/12">
+            {todos.map((todo) => (
+              <li
+                key={todo.id}
+                className="p-4 rounded bg-indigo-50 text-sm text-indigo-700 flex justify-between items-center "
               >
-                Sil
-              </button>
-            </li>
-          ))}
-        </ul>
+                {todo.todo}
+                <button
+                  onClick={() => handleDelete(todo.id)}
+                  className="h-7 rounded px-3 bg-indigo-700 text-white"
+                >
+                  Sil
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {todos.length == 0 && (
+          <li className="p-4 rounded bg-emerald-100 text-sm text-emerald-800  flex justify-between items-center  w-6/12">
+            Hiç Todo eklemedin !!
+          </li>
+        )}
       </div>
     );
   }
