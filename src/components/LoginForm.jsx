@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const LoginForm = ({ handleSubmit, noEmail = false }) => {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(noEmail ? true : " ");
   const [password, setPassword] = useState("");
 
   const handle = (e) => {

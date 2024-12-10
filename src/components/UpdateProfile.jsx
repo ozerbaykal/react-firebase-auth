@@ -2,6 +2,7 @@ import { useState } from "react";
 import { update, auth, resetPassword } from "../firebase";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/userSlice";
+import { setUserData } from "../utils";
 
 const UpdateProfile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -9,7 +10,6 @@ const UpdateProfile = () => {
   const [displayname, setDisplayName] = useState(user.displayname || "");
   const [avatar, setAvatar] = useState(user.photoURL || "");
   const [password, setPassword] = useState("");
-  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,15 +17,7 @@ const UpdateProfile = () => {
       displayname,
       photoURL: avatar,
     });
-    dispatch(
-      login({
-        displayName: auth.currentUser.displayName,
-        email: auth.currentUser.email,
-        emailVerified: auth.currentUser.emailVerified,
-        photoURL: auth.currentUser.photoURL,
-        uid: auth.currentUser.uid,
-      })
-    );
+    setUserData();
   };
   const handleResetSubmit = async (e) => {
     e.preventDefault();

@@ -1,15 +1,36 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    updateProfile,
+    sendEmailVerification,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
+} from "firebase/auth";
 
 import toast from "react-hot-toast";
 import store from "./redux/store";
-import { login as loginHandle, logout as logOutHandle } from "./redux/userSlice";
+import {
+    login as loginHandle,
+    logout as logOutHandle,
+} from "./redux/userSlice";
 import { openModal } from "./redux/modal";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
-
-
-
-
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    where,
+    doc,
+    deleteDoc,
+} from "firebase/firestore";
+import { setTodos } from "./redux/todos";
+import { setUserData } from "./utils";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_REACT_APP_API_KEY,
@@ -22,136 +43,137 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth()
-export const db = getFirestore(app)
-
-
+export const auth = getAuth();
+export const db = getFirestore(app);
 
 export const register = async (email, password) => {
     try {
-        const { user } = await createUserWithEmailAndPassword(auth, email, password)
-        toast.success("Hesap oluşturuldu.")
-        return user
+        const { user } = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+        toast.success("Hesap oluşturuldu.");
+        return user;
     } catch (error) {
-        toast.error(error.message)
-
+        toast.error(error.message);
     }
-
-
-}
+};
 export const login = async (email, password) => {
     try {
-        const { user } = await signInWithEmailAndPassword(auth, email, password)
-        toast.success("giriş yapıldı")
-        return user
+        const { user } = await signInWithEmailAndPassword(auth, email, password);
+        toast.success("giriş yapıldı");
+        return user;
     } catch (error) {
-        toast.error(error.message)
-
+        toast.error(error.message);
     }
-}
-export const reAuth = async password => {
+};
+export const reAuth = async (password) => {
     try {
         const credential = await EmailAuthProvider.credential(
             auth.currentUser.email,
             password
-        )
-        const { user } = await reauthenticateWithCredential(auth.currentUser, credential)
+        );
+        const { user } = await reauthenticateWithCredential(
+            auth.currentUser,
+            credential
+        );
 
-        return user
+        return user;
     } catch (error) {
-        toast.error(error.message)
-
+        toast.error(error.message);
     }
-}
-
-
-
+};
 
 export const logout = async () => {
     try {
-        await signOut(auth)
-        toast.success("çıkış yapıldı")
-        return true
-
+        await signOut(auth);
+        toast.success("çıkış yapıldı");
+        return true;
     } catch (error) {
-        toast.error(error.message)
-
+        toast.error(error.message);
     }
-
-
-}
+};
 
 export const update = async (data) => {
     try {
-        await updateProfile(auth.currentUser, data)
-        toast.success("Profil güncellendi")
-        return true
-
-
+        await updateProfile(auth.currentUser, data);
+        toast.success("Profil güncellendi");
+        return true;
     } catch (error) {
-        toast.error(error.message)
-
-
+        toast.error(error.message);
     }
-
-}
+};
 
 export const resetPassword = async (password) => {
     try {
-        await updatePassword(auth.currentUser, password)
-        toast.success("Parolanız güncellendi")
-        return true
-
-
+        await updatePassword(auth.currentUser, password);
+        toast.success("Parolanız güncellendi");
+        return true;
     } catch (error) {
         if (error.message === "auth/requires-recent-login") {
-            store.dispatch(openModal({
-                name: "re-auth-modal"
-            }))
+            store.dispatch(
+                openModal({
+                    name: "re-auth-modal",
+                })
+            );
         }
-        toast.error(error.message)
-
-
+        toast.error(error.message);
     }
-
-}
+};
 export const emailVerification = async () => {
     try {
-        await sendEmailVerification(auth.currentUser)
+        await sendEmailVerification(auth.currentUser);
         toast.success(`Doğrulama maili ${auth.currentUser.email} adresine gönerildi lütfen mailinizi kontrol edin
-        `)
-
+        `);
     } catch (error) {
-        toast.error(error.message)
-
+        toast.error(error.message);
     }
-}
-
-
+};
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        store.dispatch(loginHandle({
-            displayName: user.displayName,
-            email: user.email,
-            emailVerified: user.emailVerified,
-            photoURL: user.photoURL,
-            uid: user.uid
+        setUserData();
 
-
-        }))
+        onSnapshot(
+            query(collection(db, "todos"), where("uid", "==", auth.currentUser.uid)),
+            (doc) => {
+                store.dispatch(
+                    setTodos(
+                        doc.docs.reduce(
+                            (todos, todo) => [...todos, { ...todo.data(), id: todo.id }],
+                            []
+                        )
+                    )
+                );
+            }
+        );
     } else {
-        store.dispatch(logOutHandle())
-
+        store.dispatch(logOutHandle());
     }
-})
-
-
-
+});
 
 export const addTodo = async (data) => {
-    const result = await addDoc(collection(db, "todos"), data)
-    console.log(result)
+    try {
+        const result = await addDoc(collection(db, "todos"), data);
+        return result.id
+
+    } catch (error) {
+        toast.error(error.message)
+    }
+};
+
+export const deleteTodo = async (id) => {
+
+    try {
+        await deleteDoc(doc(db, "todos", id))
+
+
+    } catch (error) {
+        toast.error(error.message)
+
+    }
 }
+
 
 export default app;
