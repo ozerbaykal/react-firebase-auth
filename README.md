@@ -6,9 +6,11 @@ This project demonstrates the integration of Firebase's authentication and real-
 
 ### Video GIF
 
-### Homepage
+![](./src/assets/firebaserecord.gif)
 
-### SettingsPage
+### MainPage
+
+![](./src/assets/Ekran%20Resmi%202024-12-10%2004.21.34.png)
 
 ## Features
 
